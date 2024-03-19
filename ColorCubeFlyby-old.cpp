@@ -1,3 +1,5 @@
+//OLD VERSION: Currently in the process of converting to glfw
+
 // This program is a flyby around the RGB color cube.  One intersting note
 // is that because the cube is a convex polyhedron and it is the only thing
 // in the scene, we can render it using backface culling only. i.e., there
@@ -10,8 +12,8 @@
 #endif
 #include <cmath>
 
-#include <GLFW/glfw3.h>
-#include <iostream>
+//#include <GLFW/glfw3.h>
+
 
 // GLUT escape key id for readability
 #define KEY_ESCAPE 27
@@ -177,79 +179,42 @@ void key_callback(unsigned char key, int dummy1, int dummy2)
 //  https://learnopengl.com/Getting-started/Camera
 void motion_callback(int x, int y)
 {
-  // static GLboolean firstMouse = true;
-  // static GLint lastX = 0, lastY = 0;
+  static GLboolean firstMouse = true;
+  static GLint lastX = 0, lastY = 0;
 
-  // if (firstMouse)
-  // {
-  //   lastX = x;
-  //   lastY = y;
-  //   firstMouse = false;
-  // }
+  if (firstMouse)
+  {
+    lastX = x;
+    lastY = y;
+    firstMouse = false;
+  }
 
-  // float xOffset = x - lastX;
-  // float yOffset = y - lastY;
-  // lastX = x;
-  // lastY = y;
+  float xOffset = x - lastX;
+  float yOffset = y - lastY;
+  lastX = x;
+  lastY = y;
 
-  // float sensitivity = 0.1f;
-  // //xOffset *= sensitivity;
-  // //yOffset *= sensitivity;
+  float sensitivity = 0.1f;
+  //xOffset *= sensitivity;
+  //yOffset *= sensitivity;
 
-  // yaw += xOffset * sensitivity;
-  // pitch += yOffset * sensitivity;
+  yaw += xOffset * sensitivity;
+  pitch += yOffset * sensitivity;
 
-  // if(pitch > 89.0f)
-  //       pitch = 89.0f;
-  // if(pitch < -89.0f)
-  //     pitch = -89.0f;
+  if(pitch > 89.0f)
+        pitch = 89.0f;
+  if(pitch < -89.0f)
+      pitch = -89.0f;
 
   
-  // //pitch += y * MOUSE_SENSITIVITY;
-  // //yaw += x * MOUSE_SENSITIVITY;
+  //pitch += y * MOUSE_SENSITIVITY;
+  //yaw += x * MOUSE_SENSITIVITY;
   
-  // glutWarpPointer(WIDTH/2, HEIGHT/2);  //centers the cursor
+  glutWarpPointer(WIDTH/2, HEIGHT/2);  //centers the cursor
 }
 
 // The usual main for a GLUT application.
 int main(int argc, char** argv) {
-
-  // glfw: initialize and configure
-  // ------------------------------
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-  // glfw window creation
-  // --------------------
-  GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL);
-  if (window == NULL)
-  {
-      std::cout << "Failed to create GLFW window" << std::endl;
-      glfwTerminate();
-      return -1;
-  }
-  glfwMakeContextCurrent(window);
-  //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  //glfwSetScrollCallback(window, scroll_callback);
-
-  // tell GLFW to capture our mouse
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-  // glad: load all OpenGL function pointers
-  // ---------------------------------------
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-  {
-      std::cout << "Failed to initialize GLAD" << std::endl;
-      return -1;
-  }
-
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize(WIDTH, HEIGHT);
