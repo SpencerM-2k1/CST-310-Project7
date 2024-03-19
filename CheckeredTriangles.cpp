@@ -4,8 +4,8 @@
 // if each triangle has a different texture.
 
 // GLEW
-#define GLEW_STATIC
-#include <GL/glew.h>
+// #define GLEW_STATIC
+// #include <GL/glew.h>
 
 #ifdef __APPLE_CC__
 #include <GLUT/glut.h>
