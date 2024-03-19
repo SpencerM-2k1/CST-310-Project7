@@ -10,38 +10,66 @@
 #endif
 #include <cmath>
 
+// GLUT escape key id for readability
+#define KEY_ESCAPE 27
+
+/* = TODO =
+* Add keyboard control (r) to rotate the whole image.
+* With keyboard, add zoom in/zoom out (keys +: Zoom in, -: Zoom out).
+* Add more cubes with different colors, illumination, and brightness.
+* Add two vertical planes, one on the left and one on the right, and make the cubes bounce.
+*/
+
 // The cube has opposite corners at (0,0,0) and (1,1,1), which are black and
 // white respectively.  The x-axis is the red gradient, the y-axis is the
 // green gradient, and the z-axis is the blue gradient.  The cube's position
 // and colors are fixed.
 namespace Cube {
 
-const int NUM_VERTICES = 8;
-const int NUM_FACES = 6;
+  const int NUM_VERTICES = 8;
+  const int NUM_FACES = 6;
 
-GLint vertices[NUM_VERTICES][3] = {
-  {0, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 1},
-  {1, 0, 0}, {1, 0, 1}, {1, 1, 0}, {1, 1, 1}};
+  GLint vertices[NUM_VERTICES][3] = {
+    {0, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 1},
+    {1, 0, 0}, {1, 0, 1}, {1, 1, 0}, {1, 1, 1}};
 
-GLint faces[NUM_FACES][4] = {
-  {1, 5, 7, 3}, {5, 4, 6, 7}, {4, 0, 2, 6},
-  {3, 7, 6, 2}, {0, 1, 3, 2}, {0, 4, 5, 1}};
+  GLint faces[NUM_FACES][4] = {
+    {1, 5, 7, 3}, {5, 4, 6, 7}, {4, 0, 2, 6},
+    {3, 7, 6, 2}, {0, 1, 3, 2}, {0, 4, 5, 1}};
 
-GLfloat vertexColors[NUM_VERTICES][3] = {
-  {0.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {0.0, 1.0, 0.0}, {0.0, 1.0, 1.0},
-  {1.0, 0.0, 0.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 0.0}, {1.0, 1.0, 1.0}};
+  GLfloat vertexColors[NUM_VERTICES][3] = {
+    {0.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {0.0, 1.0, 0.0}, {0.0, 1.0, 1.0},
+    {1.0, 0.0, 0.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 0.0}, {1.0, 1.0, 1.0}};
 
-void draw() {
-  glBegin(GL_QUADS);
-  for (int i = 0; i < NUM_FACES; i++) {
-    for (int j = 0; j < 4; j++) {
-      glColor3fv((GLfloat*)&vertexColors[faces[i][j]]);
-      glVertex3iv((GLint*)&vertices[faces[i][j]]);
+  void draw() {
+    glBegin(GL_QUADS);
+    for (int i = 0; i < NUM_FACES; i++) {
+      for (int j = 0; j < 4; j++) {
+        glColor3fv((GLfloat*)&vertexColors[faces[i][j]]);
+        glVertex3iv((GLint*)&vertices[faces[i][j]]);
+      }
     }
+    glEnd();
   }
-  glEnd();
 }
-}
+
+//Player-controlled variables
+
+//Figure movement
+GLboolean stopFigure = false;
+
+//Rotation control
+GLfloat pitch = 0.0f,
+        yaw =   0.0f,
+        roll =  0.0f;
+
+//Offset control
+GLfloat figureX = 0.0f,
+        figureY = 0.0f,
+        figureZ = 0.0f;
+
+//Zoom control
+GLfloat scale = 1.0f;
 
 // Display and Animation. To draw we just clear the window and draw the cube.
 // Because our main window is double buffered we have to swap the buffers to
@@ -51,6 +79,17 @@ void draw() {
 // register nextFrame as the idle function; this is done in main().
 void display() {
   glClear(GL_COLOR_BUFFER_BIT);
+  
+  //Offset
+  glTranslatef(figureX, figureY, figureZ);
+
+  //Rotation
+  static float angle = 0.0f;
+  glRotatef(1.0f, pitch, yaw, roll); // Rotate around the y-axis
+  
+  //Scale
+  glScalef(scale, scale, scale);
+
   Cube::draw();
   glFlush();
   glutSwapBuffers();
@@ -62,7 +101,8 @@ void display() {
 // a weird tumbling effect.
 void timer(int v) {
   static GLfloat u = 0.0;
-  u += 0.01;
+  if(!stopFigure)
+    u += 0.01;
   glLoadIdentity();
   gluLookAt(8*cos(u), 7*cos(u)-1, 4*cos(u/3)+2, .5, .5, .5, cos(u), 1, 0);
   glutPostRedisplay();
@@ -89,6 +129,32 @@ void init() {
   glCullFace(GL_BACK);
 }
 
+void key_callback(unsigned char key, int dummy1, int dummy2)
+{
+  switch(key)
+  {
+    case (KEY_ESCAPE): //Quit
+      exit(0);
+    case ('r'): //Rotate whole image (TODO)
+
+      break;
+    case ('s'):
+      stopFigure = true;
+      break;
+    case ('c'):
+      stopFigure = false;
+      break;
+    case ('u'): //Move up
+      if (stopFigure)
+        figureY += 0.1f;
+      break;
+    case ('d'): //Move down
+      if (stopFigure)
+        figureY -= 0.1f;
+      break;
+  }
+}
+
 // The usual main for a GLUT application.
 int main(int argc, char** argv) {
   glutInit(&argc, argv);
@@ -98,6 +164,7 @@ int main(int argc, char** argv) {
   glutReshapeFunc(reshape);
   glutTimerFunc(100, timer, 0);
   glutDisplayFunc(display);
+  glutKeyboardFunc(key_callback); // Register the keyboard callback function
   init();
   glutMainLoop();
 }

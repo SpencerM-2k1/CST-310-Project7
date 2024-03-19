@@ -46,7 +46,7 @@ GLfloat figureX = 0.0f,
         figureY = 0.0f,
         figureZ = 0.0f;
 
-//Scale control
+//Zoom control
 GLfloat scale = 1.0f;
 
 // Fixes up camera and remaps texture when window reshaped.
@@ -119,11 +119,9 @@ void display() {
 // Keyboard callback
 void key_callback(unsigned char key, int dummy1, int dummy2)
 {
-  if (key == KEY_ESCAPE) // ASCII value for Escape key
-    exit(0); // End
   switch(key)
   {
-    case (KEY_ESCAPE):
+    case (KEY_ESCAPE): //Quit
       exit(0);
     case ('p'): //Stop rotation
       rotateFigure = false;
