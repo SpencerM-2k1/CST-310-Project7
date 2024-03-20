@@ -1,15 +1,23 @@
-(TODO: Write a properly formatted README, this is just temporary)
+# Project 7: Putting It All Together
+# Written by Spencer Meren and Samson Becenti
 
------
+## Build Project
 
 Compile CheckeredTriangles.cpp:
 
-    g++ CheckeredTriangles.cpp -o main1 -lGLU -lGL  -lglut
-
+	g++ CheckeredTriangles.cpp -o triangles -lGLU -lGL -lglut -lglfw
+	
 Compile ColorCubeFlyby.cpp:
 
-    g++ ColorCubeFlyby.cpp -o main2 -lglfw -lGLU -lGL -lglut
+	g++ ColorCubeFlyby.cpp -o cubes -lGLU -lGL -lglut
 
-Compile ColorCubeFlyby(old).cpp:
+## Execute
 
-    g++ ColorCubeFlyby(old).cpp -o main2 -lGLU -lGL -lglut
+Run CheckeredTriangles.cpp:
+
+	./triangles
+
+Run ColorCubeFlyby.cpp
+
+	./cubes
+

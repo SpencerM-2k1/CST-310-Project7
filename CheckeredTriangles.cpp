@@ -20,7 +20,7 @@
 #endif
 #include <cstdlib>
 
-
+#include <iostream>
 
 // GLFW
 #include <GLFW/glfw3.h>
@@ -130,21 +130,27 @@ void key_callback(unsigned char key, int dummy1, int dummy2)
     case (KEY_ESCAPE): //Quit
       exit(0);
     case ('p'): //Stop rotation
+    case ('P'):
       rotateFigure = false;
       break;
     case ('c'): //Start rotation
+    case ('C'):
       rotateFigure = true;
       break;
     case ('u'): //Move up
+    case ('U'):
       figureY += 0.1f;
       break;
     case ('d'): //Move down
+    case ('D'):
       figureY -= 0.1f;
       break;
     case ('l'): //Move left
+    case ('L'):
       figureX -= 0.1f;
       break;
     case ('r'): //Move right
+    case ('R'):
       figureX += 0.1f;
       break;
     case ('+'): //Zoom in
@@ -154,6 +160,7 @@ void key_callback(unsigned char key, int dummy1, int dummy2)
         scale = 3.0f;
       break;
     case ('-'): //Zoom out
+    case ('_'):
       scale -= 0.1f;
       if (scale < 0.1f)
         scale = 0.1f;
@@ -163,9 +170,23 @@ void key_callback(unsigned char key, int dummy1, int dummy2)
   }
 }
 
+void printInstructions()
+{
+  std::cout << "ESC - quit" << std::endl;
+  std::cout << "p - pause rotation" << std::endl;
+  std::cout << "c - continue rotation" << std::endl;
+  std::cout << "u - move figure up" << std::endl;
+  std::cout << "d - move figure down" << std::endl;
+  std::cout << "l - move figure left" << std::endl;
+  std::cout << "r - move figure right" << std::endl;
+  std::cout << "+ - zoom in" << std::endl;
+  std::cout << "- - zoom out" << std::endl;
+}
+
 // Initializes GLUT and enters the main loop.
 int main(int argc, char** argv) {
   glutInit(&argc, argv);
+  printInstructions();
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
   glutInitWindowSize(520, 390);
   glutCreateWindow("Textured Triangles");
