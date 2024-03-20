@@ -84,6 +84,58 @@ GLfloat scale = 1.0f;
 
 //GLfloat xoffset = 0, yoffset = 0;
 
+GLfloat cubePositions[][3] = {
+    {-5.0f, 3.0f, 3.0f},
+    {5.0f, 4.0f, -1.0f},
+    {0.0f, -5.0f, 2.0f},
+    {0.0f, 6.0f, -4.0f}
+};
+int numCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
+
+GLfloat cubeSpeeds[][3] = {
+    {0.1f, 0.0f, 0.0f},
+    {-0.3f, 0.0f, 0.0f},
+    {0.1f, 0.0f, 0.0f},
+    {-0.2f, 0.0f, 0.0f}
+};
+
+
+void drawWalls() {
+    // Disable backface culling temporarily to ensure both sides of the walls are drawn
+    glDisable(GL_CULL_FACE);
+
+    // Draw left wall
+    glColor3f(0.0f, 0.0f, 1.0f); // Red color
+    glBegin(GL_QUADS);
+    glVertex3f(-15.0f, -15.0f, -15.0f);
+    glVertex3f(-15.0f, -15.0f, 15.0f);
+    glVertex3f(-15.0f, 15.0f, 15.0f);
+    glVertex3f(-15.0f, 15.0f, -15.0f);
+    glEnd();
+
+    // Draw right wall
+    glColor3f(0.0f, 0.0f, 1.0f); // Green color
+    glBegin(GL_QUADS);
+    glVertex3f(15.0f, -20.0f, -20.0f);
+    glVertex3f(15.0f, -20.0f, 20.0f);
+    glVertex3f(15.0f, 20.0f, 20.0f);
+    glVertex3f(15.0f, 20.0f, -20.0f);
+    glEnd();
+
+    // Re-enable backface culling for subsequent rendering
+    glEnable(GL_CULL_FACE);
+}
+
+void drawBouncingCubes() {
+    for (int i = 0; i < numCubes; ++i) {
+        glPushMatrix();
+        glTranslatef(cubePositions[i][0], cubePositions[i][1], cubePositions[i][2]);
+        Cube::draw();
+        glPopMatrix();
+    }
+}
+
+
 // Display and Animation. To draw we just clear the window and draw the cube.
 // Because our main window is double buffered we have to swap the buffers to
 // make the drawing visible. Animation is achieved by successively moving our
@@ -107,7 +159,10 @@ void display() {
   //Scale
   glScalef(scale, scale, scale);
 
+  drawWalls();
+  drawBouncingCubes();
   Cube::draw();
+
   glFlush();
   glutSwapBuffers();
 }
@@ -118,6 +173,17 @@ void display() {
 // a weird tumbling effect.
 void timer(int v) {
   static GLfloat u = 0.0;
+  for (int i = 0; i < numCubes; ++i) {
+        cubePositions[i][0] += cubeSpeeds[i][0];
+        cubePositions[i][1] += cubeSpeeds[i][1];
+        cubePositions[i][2] += cubeSpeeds[i][2];
+
+        // Check if the cube hits the walls and reverse its velocity if it does
+        if (cubePositions[i][0] < -15.0f || cubePositions[i][0] > 15.0f) {
+            cubeSpeeds[i][0] *= -1;
+        }
+    }
+
   if(!stopFigure)
     u += 0.01;
   glLoadIdentity();
