@@ -8,8 +8,8 @@ Compile CheckeredTriangles.cpp:
 
 Compile ColorCubeFlyby.cpp:
 
-    g++ ColorCubeFlyby.cpp -o main2 -lglfw -lGLU -lGL -lglutsha
+    g++ ColorCubeFlyby.cpp -o main2 -lglfw -lGLU -lGL -lglut
 
 Compile ColorCubeFlyby(old).cpp:
 
-    g++ ColorCubeFlyby(old).cpp -o main2 -lGLU -lGL -lglutsha
+    g++ ColorCubeFlyby(old).cpp -o main2 -lGLU -lGL -lglut

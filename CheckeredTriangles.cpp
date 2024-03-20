@@ -1,3 +1,9 @@
+//Spencer Meren
+//Samson Becenti
+
+//March 20, 2024
+//CST-310
+
 // This application is a trivial illustration of texture mapping.  It draws
 // several triangles, each with a texture mapped on to it.  The same texture
 // is used for each triangle, but the mappings vary quite a bit so it looks as

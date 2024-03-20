@@ -1,4 +1,8 @@
-//OLD VERSION: Currently in the process of converting to glfw
+//Spencer Meren
+//Samson Becenti
+
+//March 20, 2024
+//CST-310
 
 // This program is a flyby around the RGB color cube.  One intersting note
 // is that because the cube is a convex polyhedron and it is the only thing
@@ -12,20 +16,19 @@
 #endif
 #include <cmath>
 
-//#include <GLFW/glfw3.h>
-
+#include <iostream>
 
 // GLUT escape key id for readability
 #define KEY_ESCAPE 27
 
 //Other constants
 #define MOUSE_SENSITIVITY 0.01f
-#define HEIGHT 500
-#define WIDTH 500
+const int HEIGHT = 500;
+const int WIDTH = 500;
+const int xCenter = WIDTH / 2;
+const int yCenter = WIDTH / 2;
 
 /* = TODO =
-* Add keyboard control (r) to rotate the whole image.
-* With keyboard, add zoom in/zoom out (keys +: Zoom in, -: Zoom out).
 * Add more cubes with different colors, illumination, and brightness.
 * Add two vertical planes, one on the left and one on the right, and make the cubes bounce.
 */
@@ -71,8 +74,8 @@ GLboolean stopFigure = false;
 //Rotation control
 GLboolean autoRotate = false;
 GLfloat pitch = 0.0f,
-        yaw =   0.0f,
-        roll =  0.0f;
+        roll =  0.0f,
+        yaw =   0.0f;
 
 //Offset control
 GLfloat figureX = 0.0f,
@@ -82,7 +85,61 @@ GLfloat figureX = 0.0f,
 //Zoom control
 GLfloat scale = 1.0f;
 
+//Manual mouse control
+bool manualRotation = false;
 //GLfloat xoffset = 0, yoffset = 0;
+
+GLfloat cubePositions[][3] = {
+    {-5.0f, 3.0f, 3.0f},
+    {5.0f, 4.0f, -1.0f},
+    {0.0f, -5.0f, 2.0f},
+    {0.0f, 6.0f, -4.0f}
+};
+int numCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
+
+GLfloat cubeSpeeds[][3] = {
+    {0.1f, 0.0f, 0.0f},
+    {-0.3f, 0.0f, 0.0f},
+    {0.1f, 0.0f, 0.0f},
+    {-0.2f, 0.0f, 0.0f}
+};
+
+
+void drawWalls() {
+    // Disable backface culling temporarily to ensure both sides of the walls are drawn
+    glDisable(GL_CULL_FACE);
+    glPushMatrix();
+    // Draw left wall
+    glColor3f(0.0f, 0.0f, 1.0f); // Red color
+    glBegin(GL_QUADS);
+    glVertex3f(-15.0f, -15.0f, -15.0f);
+    glVertex3f(-15.0f, -15.0f, 15.0f);
+    glVertex3f(-15.0f, 15.0f, 15.0f);
+    glVertex3f(-15.0f, 15.0f, -15.0f);
+    glEnd();
+
+    // Draw right wall
+    glColor3f(0.0f, 0.0f, 1.0f); // Green color
+    glBegin(GL_QUADS);
+    glVertex3f(15.0f, -20.0f, -20.0f);
+    glVertex3f(15.0f, -20.0f, 20.0f);
+    glVertex3f(15.0f, 20.0f, 20.0f);
+    glVertex3f(15.0f, 20.0f, -20.0f);
+    glEnd();
+    glPopMatrix();
+
+    // Re-enable backface culling for subsequent rendering
+    glEnable(GL_CULL_FACE);
+}
+
+void drawBouncingCubes() {
+    for (int i = 0; i < numCubes; ++i) {
+        glPushMatrix();
+        glTranslatef(cubePositions[i][0], cubePositions[i][1], cubePositions[i][2]);
+        Cube::draw();
+        glPopMatrix();
+    }
+}
 
 // Display and Animation. To draw we just clear the window and draw the cube.
 // Because our main window is double buffered we have to swap the buffers to
@@ -91,23 +148,27 @@ GLfloat scale = 1.0f;
 // the next point and draws. The way that we get animation in OpenGL is to
 // register nextFrame as the idle function; this is done in main().
 void display() {
-  glClear(GL_COLOR_BUFFER_BIT);
-  
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   //Offset
   glTranslatef(figureX, figureY, figureZ);
+
+  //Scale
+  glScalef(scale, scale, scale);
 
   //Rotation
   if (autoRotate)
     yaw += 1.0f;
-  // glRotatef(pitch, pitch, yaw, roll); // Rotate around the y-axis
-  //glRotatef(pitch, 1.0f, 0.0f, 0.0f); // Rotate around the y-axis
-  glRotatef(yaw,   0.0f, 1.0f, 0.0f); // Rotate around the y-axis
-  //glRotatef(roll,  0.0f, 0.0f, 1.0f); // Rotate around the y-axis
+  glRotatef(pitch, 1.0f, 0.0f, 0.0f); // Rotate around the x-axis
+  //glRotatef(roll,  0.0f, 1.0f, 0.0f); // Rotate around the y-axis
+  glRotatef(yaw,   0.0f, 0.0f, 1.0f); // Rotate around the z-axis
   
-  //Scale
-  glScalef(scale, scale, scale);
-
+  drawWalls();
+  drawBouncingCubes();
+  glPushMatrix();
   Cube::draw();
+  glPopMatrix();
+
   glFlush();
   glutSwapBuffers();
 }
@@ -118,6 +179,17 @@ void display() {
 // a weird tumbling effect.
 void timer(int v) {
   static GLfloat u = 0.0;
+  for (int i = 0; i < numCubes; ++i) {
+    cubePositions[i][0] += cubeSpeeds[i][0];
+    cubePositions[i][1] += cubeSpeeds[i][1];
+    cubePositions[i][2] += cubeSpeeds[i][2];
+
+    // Check if the cube hits the walls and reverse its velocity if it does
+    if (cubePositions[i][0] < -15.0f || cubePositions[i][0] > 15.0f) {
+        cubeSpeeds[i][0] *= -1;
+    }
+  }
+  
   if(!stopFigure)
     u += 0.01;
   glLoadIdentity();
@@ -134,8 +206,9 @@ void reshape(int w, int h) {
   glViewport(0, 0, w, h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(60.0, GLfloat(w) / GLfloat(h), 0.5, 40.0);
+  gluPerspective(60.0, GLfloat(w) / GLfloat(h), 0.5, 120.0);
   glMatrixMode(GL_MODELVIEW);
+  //glLoadIdentity();
 }
 
 // Application specific initialization:  The only thing we really need to do
@@ -143,10 +216,24 @@ void reshape(int w, int h) {
 // which is a convex polyhedron.
 void init() {
   glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-  glutSetCursor(GLUT_CURSOR_NONE);  //Hide cursor
+  glEnable(GL_DEPTH_TEST);
 }
 
+//Toggle camera controls (mouse)
+void toggleMouseControl()
+{
+  manualRotation = !manualRotation;
+  if (manualRotation)
+  {
+    glutSetCursor(GLUT_CURSOR_NONE);  //Hide cursor
+  }
+  else
+  {
+    glutSetCursor(GLUT_CURSOR_INHERIT);
+  }
+}
+
+//Keyboard input
 void key_callback(unsigned char key, int dummy1, int dummy2)
 {
   switch(key)
@@ -154,69 +241,97 @@ void key_callback(unsigned char key, int dummy1, int dummy2)
     case (KEY_ESCAPE): //Quit
       exit(0);
     case ('r'): //Rotate whole figure (TODO)
+    case ('R'):
       autoRotate = !autoRotate;
       //autoRotate = true;
       break;
     case ('s'): //Stop demo
+    case ('S'):
       stopFigure = true;
       break;
     case ('c'): //contine demo
+    case ('C'):
       stopFigure = false;
       break;
     case ('u'): //Move up
+    case ('U'):
       if (stopFigure)
         figureY += 0.1f;
       break;
     case ('d'): //Move down
+    case ('D'):
       if (stopFigure)
         figureY -= 0.1f;
+      break;
+    case ('+'): //Zoom in
+    case ('='):
+      scale += 0.05f;
+      if (scale > 3.0f)
+        scale = 3.0f;
+      //std::cout << scale << std::endl;
+      break;
+    case ('-'): //Zoom out
+    case ('_'):
+      scale -= 0.05f;
+      if (scale < 0.1f)
+        scale = 0.1f;
+      //std::cout << scale << std::endl;
+    case ('m'): //Zoom out
+    case ('M'):
+      toggleMouseControl();
       break;
   }
 }
 
 
-//Credit: LearnOpenGL
+//Mouse input for camera. Enabled with 'm' key.
+//Not required-- added because of a misunderstanding of the project.
+//(Seemed like a waste to delete it.) 
+//  Credit: LearnOpenGL
 //  https://learnopengl.com/Getting-started/Camera
 void motion_callback(int x, int y)
 {
+  if (!manualRotation) //Do not accept mouse rotation if not enabled
+    return;
   static GLboolean firstMouse = true;
   static GLint lastX = 0, lastY = 0;
 
-  if (firstMouse)
-  {
-    lastX = x;
-    lastY = y;
-    firstMouse = false;
-  }
-
-  float xOffset = x - lastX;
-  float yOffset = y - lastY;
-  lastX = x;
-  lastY = y;
+  float xOffset = x - xCenter;
+  float yOffset = -(y - yCenter);
 
   float sensitivity = 0.1f;
-  //xOffset *= sensitivity;
-  //yOffset *= sensitivity;
 
-  yaw += xOffset * sensitivity;
-  pitch += yOffset * sensitivity;
+  yaw += xOffset * MOUSE_SENSITIVITY;
+  pitch += yOffset * MOUSE_SENSITIVITY;
 
   if(pitch > 89.0f)
         pitch = 89.0f;
   if(pitch < -89.0f)
       pitch = -89.0f;
+  
+  if (x != xCenter || y != yCenter) { //If cursor is not at center...
+    glutWarpPointer(WIDTH / 2, HEIGHT / 2); // Move the cursor to the center of the window
+  }
+}
 
-  
-  //pitch += y * MOUSE_SENSITIVITY;
-  //yaw += x * MOUSE_SENSITIVITY;
-  
-  glutWarpPointer(WIDTH/2, HEIGHT/2);  //centers the cursor
+void printInstructions()
+{
+  std::cout << "ESC - quit" << std::endl;
+  std::cout << "r - rotate figure" << std::endl;
+  std::cout << "s - stop camera translation" << std::endl;
+  std::cout << "c - continue camera translation" << std::endl;
+  std::cout << "u - move figure up (while camera translation is stopped)" << std::endl;
+  std::cout << "d - move figure down (while camera translation is stopped)" << std::endl;
+  std::cout << "+ - zoom in" << std::endl;
+  std::cout << "- - zoom out" << std::endl;
+  std::cout << "m - toggle mouse controls" << std::endl;
 }
 
 // The usual main for a GLUT application.
 int main(int argc, char** argv) {
+  printInstructions();
   glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   glutInitWindowSize(WIDTH, HEIGHT);
   glutCreateWindow("The RGB Color Cube");
   glutReshapeFunc(reshape);
