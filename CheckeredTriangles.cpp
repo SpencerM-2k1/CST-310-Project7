@@ -97,7 +97,7 @@ void display() {
   //Rotation
   static float angle = 0.0f;
   if (rotateFigure)
-    angle += 0.01f;
+    angle += 0.5f;
   glRotatef(angle, 0.0f, 0.0f, 1.0f); // Rotate around the y-axis
 
   //Scale
